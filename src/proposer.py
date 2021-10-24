@@ -11,7 +11,7 @@ class Proposer(object):
         self.proposal_id = None
         self.latest_proposal_id = None
         self.count_acceptor = []    #[acceptor_id]
-        self.message_promise = {} #{proposal_id: message{}}
+        self.message_promise = {} #{previous_proposal_id:{"request_info":xxx, "client_id":xxx, ""}}
         self.available_slot = 0
         
     def prepare(self):
