@@ -1,3 +1,4 @@
+
 from sender import Sender
 
 class Acceptor(object):
@@ -14,6 +15,7 @@ class Acceptor(object):
         self.accepted_request = {}  #{slot:{"request":xxx, "client_id":xxx}}
 
     def promise(self, msg):
+        print("promise")
         if self.promised_proposal_id == None or self.promised_proposal_id <= msg["proposal_id"]:
             self.promised_proposal_id = msg["proposal_id"]
         else:
@@ -25,11 +27,12 @@ class Acceptor(object):
             "accepted_proposal_id": self.accepted_proposal_id, 
             "accepted_request": self.accepted_request
         }
-        host = self.proposer_list[str(msg["server_id"])]["host"]
-        port = self.proposer_list[str(msg["server_id"])]["port"]
-        self.sender.send(host, port, msg)
+        host = self.proposer_list[msg["server_id"]]["host"]
+        port = self.proposer_list[msg["server_id"]]["port"]
+        self.sender.send(host, port, promise_msg)
 
     def accept(self, msg):
+        print("accept")
         if self.promised_proposal_id != None and self.promised_proposal_id > msg["proposal_id"]:
             return
         slot = msg["slot"]

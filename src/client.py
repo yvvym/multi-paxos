@@ -15,11 +15,11 @@ def client(client_id, config_file = '../config/testcase1.json'):
     num_server = int(config['num_server']) #number of servers
     clients_list = {}
     for i in range(num_server):
-        clients_list[i] = config['client_list'][i]
+        clients_list[i] = config['client_list'][str(i)]
 
     server_list = {}
     for i in range(num_server):
-        server_list[i] = config['server_list'][i]
+        server_list[i] = config['server_list'][str(i)]
 
     drop_rate = config['drop_rate']
     
@@ -36,7 +36,7 @@ def client(client_id, config_file = '../config/testcase1.json'):
         resend_idx = 0
         while True:
             client_info = { 'request_id': i, 'client_id': client_id, 'client_host': client_host, 'client_port': client_port }
-            msg = {'type': 'request', 'request_val': val, 'resend_idx': resend_idx, 'client_info': client_info}
+            msg = {'type': 'REQUEST', 'request_val': val, 'resend_idx': resend_idx, 'client_info': client_info}
             for server_id in server_list:
                 host = server_list[server_id]['host']
                 port = server_list[server_id]['port']
@@ -53,16 +53,23 @@ def client(client_id, config_file = '../config/testcase1.json'):
 
 
 def wait_ack(client_host, client_port, timeout, clt_seq_num):
+    print("wait_ack")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((client_host, client_port))
     s.listen(100)
     
     while True:
         s.settimeout(timeout)
-        conn, addr = s.accept()
+        try: 
+            conn, addr = s.accept()
+        except socket.timeout:
+            return ""
+        
+        # conn, addr = s.accept()
         data = conn.recv(4096*2)
         msg = pickle.loads(data)
         conn.close()
+        
 
         #wait for the right clt_seq_num
         if msg['type'] == 'ACK' and msg['client_info']['clt_seq_num'] == clt_seq_num:
@@ -74,4 +81,11 @@ def wait_ack(client_host, client_port, timeout, clt_seq_num):
     
 
 if __name__ == "__main__":
-    client(int(sys.argv[1]), sys.argv[2])
+    # client(int(sys.argv[1]), sys.argv[2])
+    from optparse import OptionParser, OptionGroup
+
+    parser = OptionParser(usage = "Usage!")
+    options, args = parser.parse_args()
+    options = dict(options.__dict__)
+
+    client(*args, **options)

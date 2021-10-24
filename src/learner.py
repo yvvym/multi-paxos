@@ -26,6 +26,7 @@ class Learner(object):
         self.slot_to_execute = 0
     
     def add_accept(self, msg):
+        print("add_accept")
         acceptor_id = msg["acceptor_id"]
         slot = msg["slot"]
         request_info = msg["request_info"]
@@ -37,8 +38,10 @@ class Learner(object):
             self.proposal_list[proposal_id]["client_id"] = client_id
             self.slots[slot][proposal_id] = []
         self.slots[slot][proposal_id].append(acceptor_id)
+        
 
     def majority_have_accepted(self, proposal_id, slot):
+        print("majority_have_accepted")
         count = len(self.slots[slot][proposal_id])
         if count >= self.quorum:
             return True
@@ -46,6 +49,7 @@ class Learner(object):
             return False
         
     def decide(self, proposal_id, slot):
+        print("decide")
         self.decided_log[slot] = proposal_id
         decided_request_info = self.proposal_list[proposal_id]["request_info"]
         decided_client_id = self.proposal_list[proposal_id]["client_id"]
@@ -60,15 +64,25 @@ class Learner(object):
             self.sender.send(v["host"], v["port"], msg)
 
 
-
     def execute(self):
+        print("execute")
         while self.slot_to_execute in self.decided_log:
             proposal_id = self.decided_log[self.slot_to_execute]
             self.executed_log[self.slot_to_execute] = proposal_id
             exe = str(self.proposal_list[proposal_id]["client_id"]) + " " + self.proposal_list[proposal_id]["request_info"]
+            print("learner id %s executed values: %s"%(str(self.server_id), str(self.executed_log)))
             with open(self.execute_file, 'a') as f:
                 f.write(exe)
             self.slot_to_execute += 1
 
-    
+
+    def get_proposal_pack(self):
+        proposal_pack = {}
+        for k, v in self.decided_log:
+            proposal_pack_tmp = {}
+            proposal_pack_tmp["request_info"] = self.proposal_list[v]["request_info"]
+            proposal_pack_tmp["client_id"] = self.proposal_list[v]["client_id"]
+            proposal_pack_tmp["slot"] = k
+        proposal_pack[v] = proposal_pack_tmp
+        return proposal_pack
         
