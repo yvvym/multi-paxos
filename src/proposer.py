@@ -35,30 +35,31 @@ class Proposer(object):
 
     def propose(self, value):
         max = None
-        for k, v in self.message_promise:
-            if max == None:
-                max = k
-            if k > max:
-                max = k
-        if max == None:
-            slot = self.available_slot
-            self.available_slot += 1
-            request_info = value["request_info"]
-            client_id = value["client_id"]
-        else:
-            slot = self.message_promise[max]["slot"]
-            request_info = self.message_promise[max]["request_info"]
-            client_id = self.message_promise[max]["client_id"]
-        msg = {
-            "type": "PROPOSE",
-            "proposal_id": self.proposal_id,
-            "server_id": self.server_id,
-            "slot": slot,
-            "request_info": request_info,
-            "client_id": client_id
-        }
-        for k, v in self.acceptor_list.items():
-            self.sender.send(v["host"], v["port"], msg)
+        # max = None
+        # for k, v in self.message_promise:
+        #     if max == None:
+        #         max = k
+        #     if k > max:
+        #         max = k
+        # if max == None:
+        #     slot = self.available_slot
+        #     self.available_slot += 1
+        #     request_info = value["request_info"]
+        #     client_id = value["client_id"]
+        # else:
+        #     slot = self.message_promise[max]["slot"]
+        #     request_info = self.message_promise[max]["request_info"]
+        #     client_id = self.message_promise[max]["client_id"]
+        # msg = {
+        #     "type": "PROPOSE",
+        #     "proposal_id": self.proposal_id,
+        #     "server_id": self.server_id,
+        #     "slot": slot,
+        #     "request_info": request_info,
+        #     "client_id": client_id
+        # }
+        # for k, v in self.acceptor_list.items():
+        #     self.sender.send(v["host"], v["port"], msg)
 
 
     

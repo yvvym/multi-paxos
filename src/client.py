@@ -1,7 +1,13 @@
 import socket    
 import sys
+import logging
+from utils import *
 
-timeout = 10
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(levelname)s: %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    stream=sys.stdout
+                    )
 
 class Client:
     """
@@ -13,13 +19,15 @@ class Client:
             mode: 0 for batch mode, 1 for manual mode
             p: loss rate
     """
-    def __init__(self, client_id, host, port, server_list, messages=None, loss_rate=0):
+    def __init__(self, client_id, host, port, replica_list, messages=None, loss_rate=0):
         self.client_id = client_id
         self.loss_rate = loss_rate
-        self.server_list = server_list
+        self.replica_list = replica_list
         self.messages = messages
-        self.timeout = timeout
+        self.chat_history = {}
+        self.timeout = PROCESS_TIMEOUT
         self.msg_sent = 0
+        # self.lock = threading.Lock()
 
         # set up receiving socket
         self.host = host
@@ -29,22 +37,30 @@ class Client:
         self.s.settimeout(self.timeout)
     
     def run(self):            
-        request_message = ['apple', 'orange', 'banana', 'pear', 'lemon']
-        for i in range(len(request_message)):
-            self.send_msg(request_message[i], self.server_list, i)
+        self.run_batch_mode()
+
+    def run_batch_mode(self):
+        with open(self.messages, 'r') as f:
+            msgs = f.readlines()
+        for i in range(len(msgs)):
+            self.send_msg(msgs[i].rstrip(), self.replica_list, i)
 
     def send_msg(self, msg, sockets, request_id):
+        client_info = {
+            'clseq': (self.client_id, request_id),
+            'port': self.port,
+            'host': self.host
+        }
+        wrap_msg = {
+            'type': REQUEST,
+            'value': msg,
+            'client_info': client_info,
+            'resend_id': 0
+            }
+        self.chat_history[request_id] = (msg, 'NACK')
         while True:
-            client_info = { 'request_id': i, 'client_id': client_id, 'client_host': client_host, 'client_port': client_port }
-            msg = {'type': 'request', 'request_val': val, 'resend_idx': resend_idx, 'client_info': client_info}
-            for server_id in server_list:
-                host = server_list[server_id]['host']
-                port = server_list[server_id]['port']
-    
-                # send msg to (host, port)
-                sender_.send(host, port, msg)
-                
-                
+            for replica in sockets:
+                send(replica.host, replica.port, wrap_msg, self.loss_rate)
             reply = self.waitACK(client_info['clseq'])
             if reply == REPLY:
                 self.chat_history[request_id]= (msg, 'ACKED')

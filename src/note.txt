@@ -26,7 +26,12 @@ acceptor->learner ACCEPT {
     "client_id": client_id,
     "proposal_id": proposal_id
 }
-*leaner->client ACK
+leaner->client ACK {
+    'type': 'ack', 
+    'val': decided_val, 
+    'client_info': client_info
+}
+
 client->server REQUEST {
     "type": "REQUEST",
     "client_id": client_id,

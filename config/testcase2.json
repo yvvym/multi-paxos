@@ -2,7 +2,7 @@
     "num_server": 5,
     "failed_primary": {},
     "drop_rate": 0,
-    "num_failed_primary": 0,
+    "num_failed_primary": 1,
     "server_list": {
         "0": {
             "host": "localhost",
