@@ -24,5 +24,27 @@
             "host": "localhost",
             "port": 8084
         }
+    },
+    "client_list": {
+        "0": {
+            "host": "localhost",
+            "port": 30000
+        },
+        "1": {
+            "host": "localhost",
+            "port": 30001
+        },
+        "2": {
+            "host": "localhost",
+            "port": 30002
+        },
+        "3": {
+            "host": "localhost",
+            "port": 30003
+        },
+        "4": {
+            "host": "localhost",
+            "port": 30004
+        }
     }
 }

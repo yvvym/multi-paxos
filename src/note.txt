@@ -16,7 +16,7 @@ acceptor->proposer PROMISE {
     "acceptor_id": self.server_id, 
     "proposal_id": xxx, 
     "accepted_proposal_id": {slot:xxx}, 
-    "accepted_request": {slot:xxx}, 
+    "accepted_request": {slot:{"request_info":xxx, "client_id":xxx}}, 
 }
 acceptor->learner ACCEPT {
     "type": "ACCEPT", 

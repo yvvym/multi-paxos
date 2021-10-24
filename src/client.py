@@ -1,99 +1,74 @@
-import socket    
+import socket
+import pickle
+import json
 import sys
-import logging
-from utils import *
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s %(levelname)s: %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S',
-                    stream=sys.stdout
-                    )
+from sender import Sender
 
-class Client:
-    """
-        Client is connects to leader, and send receive messagess.
-        Param:
-            client_id: an unique client_id, integer
-            config: config file path
-            messages: message file path(for batch mode)
-            mode: 0 for batch mode, 1 for manual mode
-            p: loss rate
-    """
-    def __init__(self, client_id, host, port, replica_list, messages=None, loss_rate=0):
-        self.client_id = client_id
-        self.loss_rate = loss_rate
-        self.replica_list = replica_list
-        self.messages = messages
-        self.chat_history = {}
-        self.timeout = PROCESS_TIMEOUT
-        self.msg_sent = 0
-        # self.lock = threading.Lock()
+timeout = 20
 
-        # set up receiving socket
-        self.host = host
-        self.port = port
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.s.bind((host, port))
-        self.s.settimeout(self.timeout)
+def client(client_id, config_file = '../config/testcase1.json'):
+    #load config file
+    f =  open(config_file, 'r')
+    config = json.load(f)
+
+    clients_list = {}
+    for i in range(num_server):
+        clients_list[i] = config['client_list'][i]
+
+    num_server = int(config['num_server']) #number of servers
+
+    drop_rate = config['drop_rate']
     
-    def run(self):            
-        self.run_batch_mode()
+    sender_ = Sender(drop_rate)
+    
+    client_id = int(client_id)
+    client_host = clients_list[client_id]['host']
+    client_port = clients_list[client_id]['port']
 
-    def run_batch_mode(self):
-        with open(self.messages, 'r') as f:
-            msgs = f.readlines()
-        for i in range(len(msgs)):
-            self.send_msg(msgs[i].rstrip(), self.replica_list, i)
-
-    def send_msg(self, msg, sockets, request_id):
-        client_info = {
-            'clseq': (self.client_id, request_id),
-            'port': self.port,
-            'host': self.host
-        }
-        wrap_msg = {
-            'type': REQUEST,
-            'value': msg,
-            'client_info': client_info,
-            'resend_id': 0
-            }
-        self.chat_history[request_id] = (msg, 'NACK')
+    request_message = ['apple', 'orange', 'banana', 'pear', 'lemon']
+    
+    for i in range(len(request_message)):
+        val = request_message[i]
+        resend_idx = 0
         while True:
-            for replica in sockets:
-                send(replica.host, replica.port, wrap_msg, self.loss_rate)
-            reply = self.waitACK(client_info['clseq'])
-            if reply == REPLY:
-                self.chat_history[request_id]= (msg, 'ACKED')
-                self.msg_sent += 1
+            client_info = { 'request_id': i, 'client_id': client_id, 'client_host': client_host, 'client_port': client_port }
+            msg = {'type': 'request', 'request_val': val, 'resend_idx': resend_idx, 'client_info': client_info}
+            for server_id in server_list:
+                host = server_list[server_id]['host']
+                port = server_list[server_id]['port']
+    
+                # send msg to (host, port)
+                sender_.send(host, port, msg)
+            
+            if wait_ack(client_host, client_port, timeout, i) == 'ACK':
                 break
-            elif reply == VIEWCHANGE:
-                wrap_msg['resend_id'] = 0
-            elif reply == TIMEOUT:
-                wrap_msg['resend_id'] += 1
+            elif wait_ack(client_host, client_port, timeout, i) == 'VIEWCHANGE':
+                resend_idx += 1
             else:
-                logging.info("something wrong while waiting ack")
+                print("ACK ERROR")
 
-    def waitACK(self, client_seq_num):
-        while True:
-            try:
-                data = self.s.recv(4096*2)
-            except socket.timeout:
-                logging.debug("timeout on %s", str(client_seq_num))
-                return TIMEOUT
-            except BlockingIOError:
-                logging.debug("ioblocking")
-                # time.sleep(1)
-                continue
-            if not data:
-                continue
-            msg = json.loads(data)
-            if msg['type'] == REPLY:
-                clseq = (msg['clseq'][0], msg['clseq'][1])
-                if client_seq_num == clseq:
-                    logging.info('RCVD: %s', str(msg))
-                    return REPLY
-            elif msg['type'] == VIEWCHANGE:
-                logging.info('RCVD: %s', str(msg))
-                return VIEWCHANGE
 
-        return None
+def wait_ack(client_host, client_port, timeout, clt_seq_num):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((client_host, client_port))
+    s.listen(100)
+    
+    while True:
+        s.settimeout(timeout)
+        conn, addr = s.accept()
+        data = conn.recv(4096*2)
+        msg = pickle.loads(data)
+        conn.close()
+
+        #wait for the right clt_seq_num
+        if msg['type'] == 'ACK' and msg['client_info']['clt_seq_num'] == clt_seq_num:
+            return 'ACK'
+        elif msg['type'] == 'VIEWCHANGE':
+            return 'VIEWCHANGE'
+            
+       
+    
+
+if __name__ == "__main__":
+    client(int(sys.argv[1]), sys.argv[2])
