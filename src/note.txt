@@ -9,27 +9,27 @@ proposer->acceptor PROPOSE {
     "server_id": self.server_id, 
     "slot": slot, 
     "request_info": request_info, 
-    "client": client_id
+    "client_id": client_id
 }
 acceptor->proposer PROMISE {
     "type": "PROMISE", 
     "acceptor_id": self.server_id, 
     "proposal_id": xxx, 
-    "slot": slot, 
-    "request_info": request_info, 
-    "client": client_id, 
-    "previous_proposal_id": xxx
+    "accepted_proposal_id": {slot:xxx}, 
+    "accepted_request": {slot:xxx}, 
 }
 acceptor->learner ACCEPT {
     "type": "ACCEPT", 
     "acceptor_id": self.server_id, 
     "slot": slot, 
     "request_info": request_info, 
-    "client": client_id
+    "client_id": client_id,
+    "proposal_id": proposal_id
 }
 *leaner->client ACK
 client->server REQUEST {
     "type": "REQUEST",
     "client_id": client_id,
-    "request_info": request_info
+    "request_info": request_info,
+    "resend_id": resend_id
 }

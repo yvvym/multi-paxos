@@ -1,0 +1,27 @@
+{
+    "num_server": 5,
+    "failed_primary": {},
+    "drop_rate": 0,
+    "server_list": {
+        "0": {
+            "host": "localhost",
+            "port": 8080
+        },
+        "1": {
+            "host": "localhost",
+            "port": 8081
+        },
+        "2": {
+            "host": "localhost",
+            "port": 8082
+        },
+        "3": {
+            "host": "localhost",
+            "port": 8083
+        },
+        "4": {
+            "host": "localhost",
+            "port": 8084
+        }
+    }
+}

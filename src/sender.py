@@ -3,6 +3,8 @@ import time
 import random
 import pickle
 
+from sender import Sender
+
 class Sender(object):
     def __init__(self, loss=0):
         self.loss = loss
