@@ -12,11 +12,14 @@ def client(client_id, config_file = '../config/testcase1.json'):
     f =  open(config_file, 'r')
     config = json.load(f)
 
+    num_server = int(config['num_server']) #number of servers
     clients_list = {}
     for i in range(num_server):
         clients_list[i] = config['client_list'][i]
 
-    num_server = int(config['num_server']) #number of servers
+    server_list = {}
+    for i in range(num_server):
+        server_list[i] = config['server_list'][i]
 
     drop_rate = config['drop_rate']
     
