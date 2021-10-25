@@ -98,7 +98,6 @@ def server(server_id, config_file = '../config/testcase1.json'):
                     }
                     for i in range(new_view % num_server, num_server):
                         host, port = server_list[i]['host'], server_list[i]['port']
-                        print("======send",host, port, msg2)
                         sender_.send(host, port, msg2)
                     exit()
                 proposer.backup_request(msg)
