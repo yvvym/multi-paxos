@@ -19,11 +19,9 @@ class Learner(object):
         formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
         fh.setFormatter(formatter)
         self.file_logger.addHandler(fh)
-
-        self.proposal_list = {} #{proposal_id:{"request_info":xxx, "client_id":xxx}}
-        self.decided_log = {}   #{slot:proposal_id}
-        self.executed_log = {}  #{slot:proposal_id}
-        self.slots = {} #{slot:{proposal_id:[acceptors]}}
+        self.decided_log = {}   #{slot:{"proposal_id":xxx, "request_info": xxx, "client_id":xxx, "client_request_id":xxx}}
+        self.executed_log = {}  #{slot:{"proposal_id":xxx, "request_info": xxx, "client_id":xxx, "client_request_id":xxx}}
+        self.slots = {} #{slot:{proposal_id:{(request_info, client_id, client_request_info): [acceptor_id]}}}
         self.slot_to_execute = 0
     
     def add_accept(self, msg):
@@ -32,32 +30,41 @@ class Learner(object):
         slot = msg["slot"]
         request_info = msg["request_info"]
         client_id = msg["client_id"]
+        client_request_id = msg["client_request_id"]
         proposal_id = msg["proposal_id"]
         if slot not in self.slots:
             self.slots[slot] = {}
-        self.slots[slot][proposal_id] = []
-        self.slots[slot][proposal_id].append(acceptor_id)
-        
-        if proposal_id not in self.proposal_list:
-            self.proposal_list[proposal_id] = {}
-            self.proposal_list[proposal_id]["request_info"] = request_info
-            self.proposal_list[proposal_id]["client_id"] = client_id
+        if proposal_id not in self.slots[slot]:
+            self.slots[slot][proposal_id] = {}
+        value = (request_info, client_id, client_request_id)
+        if value not in self.slots[slot][proposal_id]:
+            self.slots[slot][proposal_id][value] = []
+        self.slots[slot][proposal_id][value].append(acceptor_id)
+        self.slots[slot][proposal_id][value] = list(set(self.slots[slot][proposal_id][value]))
             
 
     def majority_have_accepted(self, proposal_id, slot):
-        print("majority_have_accepted")
-        print(self.slots, "self.slots:", self.slots[slot])
-        count = len(self.slots[slot][proposal_id])
-        print(count, "++++++++count:", self.quorum)
-        if count >= self.quorum:
-            print("+++++++++++++True")
-            return True
-        else:
-            print("+++++++++++++False")
+        # print("majority_have_accepted")
+        # print(self.slots, "self.slots:", self.slots[slot])
+        # count = len(self.slots[slot][proposal_id])
+        # print(count, "++++++++count:", self.quorum)
+        # if count >= self.quorum:
+        #     print("+++++++++++++True")
+        #     return True
+        # else:
+        #     print("+++++++++++++False")
+        #     return False
+        if slot not in self.slots:
             return False
+        for k, v in self.slots[slot][proposal_id]:
+            if len(v) >= self.quorum:
+                return k    #return (request_info, client_id, client_request_id) which will be decided
+        return False
         
-    def decide(self, proposal_id, slot):
+    def decide(self, proposal_id, slot, k):
         print("decide")
+        decided_request_info, decided_client_id, decided_client_request_id = k
+
         self.decided_log[slot] = proposal_id
         decided_request_info = self.proposal_list[proposal_id]["request_info"]
         decided_client_id = self.proposal_list[proposal_id]["client_id"]
@@ -84,13 +91,13 @@ class Learner(object):
             self.slot_to_execute += 1
 
 
-    def get_proposal_pack(self):
-        proposal_pack = {}
-        for k, v in self.decided_log:
-            proposal_pack_tmp = {}
-            proposal_pack_tmp["request_info"] = self.proposal_list[v]["request_info"]
-            proposal_pack_tmp["client_id"] = self.proposal_list[v]["client_id"]
-            proposal_pack_tmp["slot"] = k
-        proposal_pack[v] = proposal_pack_tmp
-        return proposal_pack
+    # def get_proposal_pack(self):
+    #     proposal_pack = {}
+    #     for k, v in self.decided_log:
+    #         proposal_pack_tmp = {}
+    #         proposal_pack_tmp["request_info"] = self.proposal_list[v]["request_info"]
+    #         proposal_pack_tmp["client_id"] = self.proposal_list[v]["client_id"]
+    #         proposal_pack_tmp["slot"] = k
+    #     proposal_pack[v] = proposal_pack_tmp
+    #     return proposal_pack
         
