@@ -33,10 +33,8 @@ def client(client_id, config_file = '../config/testcase1.json'):
     
     for i in range(len(request_message)):
         val = request_message[i]
-        resend_idx = 0
         while True:
-            client_info = { 'request_id': i, 'client_id': client_id, 'client_host': client_host, 'client_port': client_port }
-            msg = {'type': 'REQUEST', 'request_val': val, 'resend_idx': resend_idx, 'client_info': client_info}
+            msg = {'type': 'REQUEST', 'client_id': client_id, 'request_info': val, 'resend_id': 0}
             for server_id in server_list:
                 host = server_list[server_id]['host']
                 port = server_list[server_id]['port']
@@ -47,12 +45,14 @@ def client(client_id, config_file = '../config/testcase1.json'):
             if wait_ack(client_host, client_port, timeout, i) == 'ACK':
                 break
             elif wait_ack(client_host, client_port, timeout, i) == 'VIEWCHANGE':
-                resend_idx += 1
+                msg['resend_id'] = 0
+            elif wait_ack(client_host, client_port, timeout, i) == 'TIMEOUT':
+                msg['resend_id'] += 1
             else:
                 print("ACK ERROR")
 
 
-def wait_ack(client_host, client_port, timeout, clt_seq_num):
+def wait_ack(client_host, client_port, timeout, client_id):
     print("wait_ack")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((client_host, client_port))
@@ -66,13 +66,17 @@ def wait_ack(client_host, client_port, timeout, clt_seq_num):
             return ""
         
         # conn, addr = s.accept()
-        data = conn.recv(4096*2)
+        # data = conn.recv(4096*2)
+        try:
+            data = conn.recv(4096*2)
+        except socket.timeout:
+            return 'TIMEOUT'
         msg = pickle.loads(data)
         conn.close()
         
 
-        #wait for the right clt_seq_num
-        if msg['type'] == 'ACK' and msg['client_info']['clt_seq_num'] == clt_seq_num:
+        #wait for the right client_id
+        if msg['type'] == 'ACK' and msg['client_info'] == client_id:
             return 'ACK'
         elif msg['type'] == 'VIEWCHANGE':
             return 'VIEWCHANGE'

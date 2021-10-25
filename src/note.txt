@@ -36,5 +36,5 @@ client->server REQUEST {
     "type": "REQUEST",
     "client_id": client_id,
     "request_info": request_info,
-    "resend_id": resend_id
+    #"resend_id": resend_id
 }

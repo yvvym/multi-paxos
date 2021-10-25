@@ -8,6 +8,7 @@ class Learner(object):
         self.loss = loss
         self.client_list = client_list
         self.quorum = len(server_list) // 2 + 1
+        self.sender = Sender(loss)
 
         self.file_logger = logging.getLogger(str(server_id))
         self.file_logger.setLevel(logging.INFO)
@@ -32,20 +33,27 @@ class Learner(object):
         request_info = msg["request_info"]
         client_id = msg["client_id"]
         proposal_id = msg["proposal_id"]
-        if proposal_id not in self.slots[slot]:
-            self.slots[slot][proposal_id] = proposal_id
-            self.proposal_list[proposal_id]["request_info"] = request_info
-            self.proposal_list[proposal_id]["client_id"] = client_id
-            self.slots[slot][proposal_id] = []
+        if slot not in self.slots:
+            self.slots[slot] = {}
+        self.slots[slot][proposal_id] = []
         self.slots[slot][proposal_id].append(acceptor_id)
         
+        if proposal_id not in self.proposal_list:
+            self.proposal_list[proposal_id] = {}
+            self.proposal_list[proposal_id]["request_info"] = request_info
+            self.proposal_list[proposal_id]["client_id"] = client_id
+            
 
     def majority_have_accepted(self, proposal_id, slot):
         print("majority_have_accepted")
+        print(self.slots, "self.slots:", self.slots[slot])
         count = len(self.slots[slot][proposal_id])
+        print(count, "++++++++count:", self.quorum)
         if count >= self.quorum:
+            print("+++++++++++++True")
             return True
         else:
+            print("+++++++++++++False")
             return False
         
     def decide(self, proposal_id, slot):
@@ -56,7 +64,7 @@ class Learner(object):
         log = "learner " + str(self.server_id) + " decided slot "+ str(slot) + " and request " + decided_request_info + " by client " + str(decided_client_id)
         self.file_logger.info(log)
         msg = {
-            "type": "ack",
+            "type": "ACK",
             "val": decided_request_info,
             "client_info": decided_client_id
         }
