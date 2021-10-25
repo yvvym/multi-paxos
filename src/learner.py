@@ -62,7 +62,6 @@ class Learner(object):
         if slot not in self.slots:
             return False
         print("self.slots[slot][proposal_id]:",self.slots[slot][proposal_id])
-        print("type",type(self.slots[slot][proposal_id]))
         slot_list = list(self.slots[slot][proposal_id].items())
         print("slot_list:", slot_list)
         for i in slot_list:

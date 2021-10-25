@@ -1,0 +1,51 @@
+{
+    "num_server": 5,
+    "failed_primary": [],
+    "drop_rate": 0,
+    "num_failed_primary": -1,
+    "skip": 1,
+    "server_list": {
+        "0": {
+            "host": "localhost",
+            "port": 20000
+        },
+        "1": {
+            "host": "localhost",
+            "port": 20001
+        },
+        "2": {
+            "host": "localhost",
+            "port": 20002
+        },
+        "3": {
+            "host": "localhost",
+            "port": 20003
+        },
+        "4": {
+            "host": "localhost",
+            "port": 20004
+        }
+    },
+    "client_list": {
+        "0": {
+            "host": "localhost",
+            "port": 30000
+        },
+        "1": {
+            "host": "localhost",
+            "port": 30001
+        },
+        "2": {
+            "host": "localhost",
+            "port": 30002
+        },
+        "3": {
+            "host": "localhost",
+            "port": 30003
+        },
+        "4": {
+            "host": "localhost",
+            "port": 30004
+        }
+    }
+}

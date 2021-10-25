@@ -36,49 +36,48 @@ def client(client_id, config_file = '../config/testcase1.json'):
 
     request_message = ['apple', 'orange', 'banana', 'pear', 'lemon']
     
-    # for i in range(len(request_message)):
-    #     val = request_message[i]
-    #     print("||||||||||||||||||||",val)
-    #     while True:
-    #         msg = {'type': 'REQUEST', 'client_id': client_id, 'request_info': val, 'resend_id': 0, 'client_request_id': i}
-    #         for server_id in server_list:
-    #             host = server_list[server_id]['host']
-    #             port = server_list[server_id]['port']
+    for i in range(len(request_message)):
+        val = request_message[i]
+        print("||||||||||||||||||||",val)
+        while True:
+            msg = {'type': 'REQUEST', 'client_id': client_id, 'request_info': val, 'resend_id': 0, 'client_request_id': i}
+            for server_id in server_list:
+                host = server_list[server_id]['host']
+                port = server_list[server_id]['port']
     
-    #             # send msg to (host, port)
-    #             sender_.send(host, port, msg)
+                # send msg to (host, port)
+                sender_.send(host, port, msg)
             
-    #         if wait_ack(client_host, client_port, timeout, i, s) == 'ACK':
-    #             break
-    #         elif wait_ack(client_host, client_port, timeout, i, s) == 'VIEWCHANGE':
-    #             print("VIEWCHANGE")
-    #             msg['resend_id'] = 0
-    #         elif wait_ack(client_host, client_port, timeout, i, s) == 'TIMEOUT':
-    #             print("TIMEOUT")
-    #             msg['resend_id'] += 1
-    #         else:
-    #             print("ACK ERROR")
+            if wait_ack(client_host, client_port, timeout, i, s) == 'ACK':
+                break
+            elif wait_ack(client_host, client_port, timeout, i, s) == 'VIEWCHANGE':
+                print("VIEWCHANGE")
+            elif wait_ack(client_host, client_port, timeout, i, s) == 'TIMEOUT':
+                print("TIMEOUT")
+            else:
+                print("ACK ERROR")
+                break
     
-    val = request_message[client_id]
-    print("||||||||||||||||||||",val)
-    while True:
-        msg = {'type': 'REQUEST', 'client_id': client_id, 'request_info': val, 'client_request_id': client_id}
-        for server_id in server_list:
-            host = server_list[server_id]['host']
-            port = server_list[server_id]['port']
+    # val = request_message[client_id]
+    # print("||||||||||||||||||||",val)
+    # while True:
+    #     msg = {'type': 'REQUEST', 'client_id': client_id, 'request_info': val, 'client_request_id': client_id}
+    #     for server_id in server_list:
+    #         host = server_list[server_id]['host']
+    #         port = server_list[server_id]['port']
     
-            # send msg to (host, port)
-            sender_.send(host, port, msg)
+    #         # send msg to (host, port)
+    #         sender_.send(host, port, msg)
             
-        if wait_ack(client_host, client_port, timeout, i, s) == 'ACK':
-            break
-        elif wait_ack(client_host, client_port, timeout, i, s) == 'VIEWCHANGE':
-            print("VIEWCHANGE")
-        elif wait_ack(client_host, client_port, timeout, i, s) == 'TIMEOUT':
-            print("TIMEOUTTTTTTTTTTTTTTTTTT")
-        else:
-            print("ACK ERROR")
-            exit()
+    #     if wait_ack(client_host, client_port, timeout, i, s) == 'ACK':
+    #         break
+    #     elif wait_ack(client_host, client_port, timeout, i, s) == 'VIEWCHANGE':
+    #         print("VIEWCHANGE")
+    #     elif wait_ack(client_host, client_port, timeout, i, s) == 'TIMEOUT':
+    #         print("TIMEOUTTTTTTTTTTTTTTTTTT")
+    #     else:
+    #         print("ACK ERROR")
+    #         exit()
 
 
 def wait_ack(client_host, client_port, timeout, client_id, s):
