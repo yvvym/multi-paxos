@@ -1,28 +1,29 @@
 {
     "num_server": 5,
-    "failed_primary": {},
+    "failed_primary": [0, 1],
     "drop_rate": 0,
     "num_failed_primary": 2,
+    "skip": -1,
     "server_list": {
         "0": {
             "host": "localhost",
-            "port": 8080
+            "port": 20000
         },
         "1": {
             "host": "localhost",
-            "port": 8081
+            "port": 20001
         },
         "2": {
             "host": "localhost",
-            "port": 8082
+            "port": 20002
         },
         "3": {
             "host": "localhost",
-            "port": 8083
+            "port": 20003
         },
         "4": {
             "host": "localhost",
-            "port": 8084
+            "port": 20004
         }
     },
     "client_list": {
