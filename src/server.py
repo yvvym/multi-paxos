@@ -27,9 +27,13 @@ def server(server_id, config_file = '../config/testcase1.json'):
         server_list[i] = config['server_list'][str(i)]
     quorum = num_server // 2 + 1
 
+    request_queue = Queue() #(client_id,request_info)
+    view = 0
+    proposal_id = 0
+    
     drop_rate = config['drop_rate']
-    proposer = Proposer(server_id, server_list, drop_rate)
-    acceptor = Acceptor(server_id, server_list, drop_rate)
+    proposer = Proposer(server_id, server_list, drop_rate, config['skip'], config['num_failed_primary'])
+    acceptor = Acceptor(server_id, server_list, drop_rate, view)
     learner = Learner(server_id, server_list, drop_rate, clients_list)
     sender_ = Sender(drop_rate)
     
@@ -42,9 +46,6 @@ def server(server_id, config_file = '../config/testcase1.json'):
     s.bind((HOST, PORT))
     s.listen(100)
 
-    request_queue = Queue() #(client_id,request_info)
-    view = 0
-    proposal_id = 0
     
     if view % num_server == server_id:
         isLeader = True
@@ -149,6 +150,7 @@ def server(server_id, config_file = '../config/testcase1.json'):
             acceptor.current_proposal_id = view
             if isLeader and view % num_server == server_id:
                 isLeader = False
+            print("line 154,", msg)
             acceptor.promise(msg)
             
         # elif msg['type'] == 'PROPOSE':
@@ -162,10 +164,10 @@ def server(server_id, config_file = '../config/testcase1.json'):
                 print("View changed by: " + str(msg))
                 view = msg['proposal_id']
                 if isLeader:
-                    isLeaderisLeader = False
-                acceptor.current_proposal_id = view
-
-            acceptor.promise(msg)
+                    isLeader = False
+                acceptor.promised_proposal_id = view
+            print("line 170,", msg)
+            acceptor.accept(msg)
 
 
         # elif msg['type'] == 'ACCEPT':
@@ -179,10 +181,16 @@ def server(server_id, config_file = '../config/testcase1.json'):
                 
         elif msg['type'] == 'ACCEPT':
             print("accept", msg)
+            learner.add_accept(msg)
             # learner gets ACCEPT message from acceptors
-            if learner.add_accept(msg):
+            k = learner.majority_have_accepted(msg['proposal_id'], msg['slot'])
+            print(msg, "++++++++++++",k)
+            if k is not False:
+                print("majority_have_accepted")
                 # decided this slot and check execution
-                learner.decide(msg['proposal_id'], msg['slot'])
+                print("======decide", msg)
+                learner.decide(msg['proposal_id'], msg['slot'], k)
+                print("======execute")
                 learner.execute()
 
         elif msg['type'] == 'VIEWCHANGE':

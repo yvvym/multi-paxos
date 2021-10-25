@@ -10,7 +10,7 @@ class Proposer(object):
         self.quorum = len(server_list) // 2 + 1
         self.sender = Sender(self.loss)
         self.have_prepared = False
-        self.proposal_id = None
+        self.proposal_id = 0
         # self.latest_proposal_id = None
         self.count_acceptor = []    #[acceptor_id]
         self.message_promise = {}   #{proposal_id:[{"request_info":xxx, "client_id":xxx, "client_request_id": xxx, "slot":xxx, "previous_proposal_id":xxx}]}
@@ -115,7 +115,7 @@ class Proposer(object):
                 "client_id": msg["client_id"],
                 "client_request_id": msg["client_request_id"]
             }
-        if msg["request"] != "NOOP":
+        if msg["request_info"] != "NOOP":
             temp = (msg["client_id"], msg["client_request_id"])
             if temp not in self.proposed_list:
                 if self.available_slot == self.skip:
@@ -125,7 +125,7 @@ class Proposer(object):
             else:
                 previous_proposal_msg = self.proposed_list[temp]
                 for k, v in self.acceptor_list.items():
-                    self.sender.send(v["host"], v["port"], previous_proposal_msg)
+                    self.sender.send(v["host"], v["port"], msg)
         else:
             self.propose(self.available_slot, value)
             self.available_slot += 1

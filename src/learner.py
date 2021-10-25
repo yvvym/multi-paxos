@@ -37,10 +37,12 @@ class Learner(object):
         if proposal_id not in self.slots[slot]:
             self.slots[slot][proposal_id] = {}
         value = (request_info, client_id, client_request_id)
+        print("value:", value)
         if value not in self.slots[slot][proposal_id]:
             self.slots[slot][proposal_id][value] = []
         self.slots[slot][proposal_id][value].append(acceptor_id)
         self.slots[slot][proposal_id][value] = list(set(self.slots[slot][proposal_id][value]))
+        print("self.slots:", self.slots)
             
 
     def majority_have_accepted(self, proposal_id, slot):
@@ -54,9 +56,18 @@ class Learner(object):
         # else:
         #     print("+++++++++++++False")
         #     return False
+        print("slot",slot)
+        print("self.slots",self.slots)
+        print("proposal_id", proposal_id)
         if slot not in self.slots:
             return False
-        for k, v in self.slots[slot][proposal_id]:
+        print("self.slots[slot][proposal_id]:",self.slots[slot][proposal_id])
+        print("type",type(self.slots[slot][proposal_id]))
+        slot_list = list(self.slots[slot][proposal_id].items())
+        print("slot_list:", slot_list)
+        for i in slot_list:
+            k = i[0]
+            v = i[1]
             if len(v) >= self.quorum:
                 return k    #return (request_info, client_id, client_request_id) which will be decided
         return False
@@ -64,28 +75,37 @@ class Learner(object):
     def decide(self, proposal_id, slot, k):
         print("decide")
         decided_request_info, decided_client_id, decided_client_request_id = k
-
-        self.decided_log[slot] = proposal_id
-        decided_request_info = self.proposal_list[proposal_id]["request_info"]
-        decided_client_id = self.proposal_list[proposal_id]["client_id"]
-        log = "learner " + str(self.server_id) + " decided slot "+ str(slot) + " and request " + decided_request_info + " by client " + str(decided_client_id)
-        self.file_logger.info(log)
-        msg = {
-            "type": "ACK",
-            "val": decided_request_info,
-            "client_info": decided_client_id
-        }
-        for k, v in self.client_list.items():
-            self.sender.send(v["host"], v["port"], msg)
+        if slot in self.decided_log:
+            return
+        self.decided_log[slot] = {}
+        self.decided_log[slot]["request_info"] = decided_request_info
+        self.decided_log[slot]["client_id"] = decided_client_id
+        self.decided_log[slot]["client_request_id"] = decided_client_request_id
+        # self.decided_log[slot] = proposal_id
+        # decided_request_info = self.proposal_list[proposal_id]["request_info"]
+        # decided_client_id = self.proposal_list[proposal_id]["client_id"]
+        print("==============",decided_request_info)
+        if decided_request_info != "NOOP":
+            log = "learner " + str(self.server_id) + " decided slot "+ str(slot) + " with request " + str(decided_client_request_id) + " by client " + str(decided_client_id) + ": " + decided_request_info
+            self.file_logger.info(log)
+            msg = {
+                "type": "ACK",
+                "val": decided_request_info,
+                "client_info": decided_client_id
+            }
+            # for k, v in self.client_list.items():
+            self.sender.send(self.client_list[decided_client_id]["host"], self.client_list[decided_client_id]["port"], msg)
 
 
     def execute(self):
         print("execute")
+        print("**************",self.slot_to_execute)
+        print("**************",self.decided_log)
         while self.slot_to_execute in self.decided_log:
-            proposal_id = self.decided_log[self.slot_to_execute]
-            self.executed_log[self.slot_to_execute] = proposal_id
-            exe = str(self.proposal_list[proposal_id]["client_id"]) + " " + self.proposal_list[proposal_id]["request_info"]
-            print("learner id %s executed values: %s"%(str(self.server_id), str(self.executed_log)))
+            # proposal_id = self.decided_log[self.slot_to_execute]
+            self.executed_log[self.slot_to_execute] = self.decided_log[self.slot_to_execute]
+            exe = "client_id:" + str(self.executed_log[self.slot_to_execute]["client_id"]) + ", client_request_id:" + str(self.executed_log[self.slot_to_execute]["client_request_id"]) + ", request_info:" + self.executed_log[self.slot_to_execute]["request_info"] + "\n"
+            # print("learner id %s executed values: %s"%(str(self.server_id), str(self.executed_log)))
             with open(self.execute_file, 'a') as f:
                 f.write(exe)
             self.slot_to_execute += 1
