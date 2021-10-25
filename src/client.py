@@ -62,7 +62,7 @@ def client(client_id, config_file = '../config/testcase1.json'):
     val = request_message[client_id]
     print("||||||||||||||||||||",val)
     while True:
-        msg = {'type': 'REQUEST', 'client_id': client_id, 'request_info': val, 'resend_id': 0, 'client_request_id': client_id}
+        msg = {'type': 'REQUEST', 'client_id': client_id, 'request_info': val, 'client_request_id': client_id}
         for server_id in server_list:
             host = server_list[server_id]['host']
             port = server_list[server_id]['port']
@@ -74,10 +74,8 @@ def client(client_id, config_file = '../config/testcase1.json'):
             break
         elif wait_ack(client_host, client_port, timeout, i, s) == 'VIEWCHANGE':
             print("VIEWCHANGE")
-            msg['resend_id'] = 0
         elif wait_ack(client_host, client_port, timeout, i, s) == 'TIMEOUT':
-            print("TIMEOUT")
-            msg['resend_id'] += 1
+            print("TIMEOUTTTTTTTTTTTTTTTTTT")
         else:
             print("ACK ERROR")
             exit()

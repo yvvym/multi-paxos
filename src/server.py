@@ -27,9 +27,8 @@ def server(server_id, config_file = '../config/testcase1.json'):
         server_list[i] = config['server_list'][str(i)]
     quorum = num_server // 2 + 1
 
-    request_queue = Queue() #(client_id,request_info)
     view = 0
-    proposal_id = 0
+
     
     drop_rate = config['drop_rate']
     proposer = Proposer(server_id, server_list, drop_rate, config['skip'], config['num_failed_primary'])
@@ -53,6 +52,8 @@ def server(server_id, config_file = '../config/testcase1.json'):
         isLeader = False
     
     num_failed_primary = int(config['num_failed_primary'])
+    failed_primary = config['failed_primary']
+    
     while True: 
         print("server start", server_id)
         conn, addr = s.accept()
@@ -87,18 +88,29 @@ def server(server_id, config_file = '../config/testcase1.json'):
             print("request", msg)
             if isLeader:
                 # testcase2, 3
-                if num_failed_primary > 0 and server_id < num_failed_primary:
+                if num_failed_primary > 0 and server_id in failed_primary:
+                    print("force the primary %s to crash"%(str(server_id)))
+                    new_view = view + 1
+                    msg2 = {
+                        'type' : 'VIEWCHANGE',
+                        'new_view' : new_view,
+                        'replica_id' : server_id
+                    }
+                    for i in range(new_view % num_server, num_server):
+                        host, port = server_list[i]['host'], server_list[i]['port']
+                        print("======send",host, port, msg2)
+                        sender_.send(host, port, msg2)
                     exit()
                 proposer.backup_request(msg)
-            elif msg['resend_id'] > 0:
-                new_view = view + 1
-                msg2 = {
-                    'type' : 'VIEWCHANGE',
-                    'new_view' : new_view,
-                    'replica_id' : server_id
-                }
-                host, port = server_list[new_view % num_server]['host'], server_list[new_view % num_server]['port']
-                sender_.send(host, port, msg2)
+            # elif msg['resend_id'] > 0:
+            #     new_view = view + 1
+            #     msg2 = {
+            #         'type' : 'VIEWCHANGE',
+            #         'new_view' : new_view,
+            #         'replica_id' : server_id
+            #     }
+            #     host, port = server_list[new_view % num_server]['host'], server_list[new_view % num_server]['port']
+            #     sender_.send(host, port, msg2)
                             
 
         # elif msg['type'] == 'PROMISE':
@@ -116,8 +128,10 @@ def server(server_id, config_file = '../config/testcase1.json'):
         #     print("proposer.message_promise:", proposer.message_promise)
         
         elif msg['type'] == 'PROMISE':
+            print("line131",server_id)
             # I'm going to become the new leader, preparing for propose
             if msg['proposal_id'] % num_server == server_id:
+                print("line133", isLeader)
                 proposer.process_promise(msg)
                 """
                 getting a majority of promise
@@ -126,13 +140,16 @@ def server(server_id, config_file = '../config/testcase1.json'):
                 re-propose everything up to highest slot_num
                 send to client: I'm new leader
                 """
-                if not isLeader and len(proposer.count_acceptor) >= proposer.quorum:
-                    print(u'{} becomes the new leader, proposing now'.format(msg['proposal_id']))
-                    isLeader = True
-                    # notify clients viewchange
-                    for c in clients_list:
-                        sender_.send(c['host'], c['port'], {'type': 'VIEWCHANGE'})
-                    proposal_list = proposer.get_proposals()
+                print("line143", isLeader)
+                # if not isLeader and len(proposer.count_acceptor) >= proposer.quorum:
+                print(u'{} becomes the new leader, proposing now'.format(msg['proposal_id']))
+                isLeader = True
+                # notify clients viewchange
+                print("======line145", clients_list)
+                for i in list(clients_list.items()):
+                    sender_.send(i[1]['host'], i[1]['port'], {'type': 'VIEWCHANGE'})
+                proposal_list = proposer.get_proposals()
+                if proposal_list is not False:
                     for slot_idx, proposal in proposal_list.items():
                         proposer.propose(slot_idx, proposal)
 
@@ -194,32 +211,33 @@ def server(server_id, config_file = '../config/testcase1.json'):
                 learner.execute()
 
         elif msg['type'] == 'VIEWCHANGE':
+            print("======VIEWCHANGE",msg)
             if msg['new_view'] < view:
                 return
             new_view = msg['new_view']
             
-            process_viewchange = False
-            proposer_rid = msg['replica_id']
-            if new_view % num_server == server_id:
-                process_viewchange = False
-            if new_view < view:
-                print("My current view is", view, "but giving me view change")
-                process_viewchange = False
-            if new_view in viwechange_log:
-                viwechange_log[new_view][proposer_rid] = True
-            else:
-                viwechange_log[new_view] = {}
-                viwechange_log[new_view][proposer_rid] = True
-            print("Getting",len(viwechange_log[new_view]),"votes")
-            if len(viwechange_log[new_view]) >= quorum:
-                process_viewchange = True
-            process_viewchange = False
+            # process_viewchange = False
+            # proposer_rid = msg['replica_id']
+            # if new_view % num_server == server_id:
+            #     print("new_view", new_view)
+            #     process_viewchange = False
+            # if new_view < view:
+            #     print("My current view is", view, "but giving me view change")
+            #     process_viewchange = False
+            # if new_view not in viwechange_log:
+            #     viwechange_log[new_view] = {}
+            # viwechange_log[new_view][proposer_rid] = True
+            # print("Getting",len(viwechange_log[new_view]),"votes")
+            # if len(viwechange_log[new_view]) >= quorum:
+            #     process_viewchange = True
+            
+            process_viewchange = True
     
             # other replica want me to become leader
-            if process_viewchange(msg) and not isLeader:
+            if process_viewchange and not isLeader:
                 # a majority of replica want me to become leader
                 view = msg['new_view']
-                acceptor.current_proposal_id = view
+                acceptor.promised_proposal_id = view
                 print("I'm the new leader by majority: " + str(msg))
                 proposer.message_promise = {}
                 proposer.count_acceptor = []

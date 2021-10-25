@@ -33,10 +33,12 @@ class Proposer(object):
         acceptor_id = msg["acceptor_id"]
         proposal_id = msg["proposal_id"]
         print("self.proposal_id:", self.proposal_id, "proposal_id:", proposal_id)
+        print("line36", msg)
         if self.proposal_id != proposal_id:
             return
         self.count_acceptor.append(acceptor_id)
         self.count_acceptor = list(set(self.count_acceptor))
+        print("line41", self.count_acceptor)
         for slot in msg["accepted_proposal_id"]:
             previous_proposal_id = msg["accepted_proposal_id"][slot]
             temp = {}
@@ -54,6 +56,8 @@ class Proposer(object):
         print("self.message_promise:", self.message_promise)
 
     def get_proposals(self):
+        if self.proposal_id not in self.message_promise:
+            return False
         accepted_requets = self.message_promise[self.proposal_id]
         max_proposal_id = {}    #{slot: max_proposal_id}
         requests_to_propose = {}    #{slot: {"client_id": xxx, "client_request_id": xxx, "request_info": xxx}}
