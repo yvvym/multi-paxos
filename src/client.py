@@ -14,7 +14,6 @@ def client(client_id, config_file = '../config/testcase1.json'):
 
     num_server = int(config['num_server']) #number of servers
     clients_list = {}
-    print("len(list(config['client_list'].keys())):",len(list(config['client_list'].keys())))
     for i in range(len(list(config['client_list'].keys()))):
         clients_list[i] = config['client_list'][str(i)]
 
@@ -39,7 +38,7 @@ def client(client_id, config_file = '../config/testcase1.json'):
     
     for i in range(len(request_message)):
         val = request_message[i]
-        print("||||||||||||||||||||",val)
+        print("request value:",val)
         while True:
             msg = {'type': 'REQUEST', 'client_id': client_id, 'request_info': val, 'client_request_id': i}
             for server_id in server_list:
@@ -49,7 +48,7 @@ def client(client_id, config_file = '../config/testcase1.json'):
                 # send msg to (host, port)
                 a = sender_.send(host, port, msg)
                 if a == "losss":
-                    print("losssssssssssssssssssssssssss", msg)
+                    print("message loss", msg)
             
             if wait_ack(client_host, client_port, timeout, i, s) == 'ACK':
                 break
@@ -60,28 +59,7 @@ def client(client_id, config_file = '../config/testcase1.json'):
             else:
                 print("ACK ERROR")
                 break
-    
-    # val = request_message[client_id]
-    # print("||||||||||||||||||||",val)
-    # while True:
-    #     msg = {'type': 'REQUEST', 'client_id': client_id, 'request_info': val, 'client_request_id': client_id}
-    #     for server_id in server_list:
-    #         host = server_list[server_id]['host']
-    #         port = server_list[server_id]['port']
-    
-    #         # send msg to (host, port)
-    #         sender_.send(host, port, msg)
-            
-    #     if wait_ack(client_host, client_port, timeout, i, s) == 'ACK':
-    #         break
-    #     elif wait_ack(client_host, client_port, timeout, i, s) == 'VIEWCHANGE':
-    #         print("VIEWCHANGE")
-    #     elif wait_ack(client_host, client_port, timeout, i, s) == 'TIMEOUT':
-    #         print("TIMEOUTTTTTTTTTTTTTTTTTT")
-    #     else:
-    #         print("ACK ERROR")
-    #         exit()
-
+       
 
 def wait_ack(client_host, client_port, timeout, client_id, s):
     print("wait_ack")
@@ -103,18 +81,15 @@ def wait_ack(client_host, client_port, timeout, client_id, s):
         msg = pickle.loads(data)
         conn.close()
         
-        print("=========line77", msg)
         #wait for the right client_id
         if msg['type'] == 'ACK' and msg['client_info'] == client_id:
             return 'ACK'
         elif msg['type'] == 'VIEWCHANGE':
             return 'VIEWCHANGE'
             
-       
     
 
 if __name__ == "__main__":
-    # client(int(sys.argv[1]), sys.argv[2])
     from optparse import OptionParser, OptionGroup
 
     parser = OptionParser(usage = "Usage!")

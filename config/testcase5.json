@@ -1,7 +1,7 @@
 {
     "num_server": 7,
     "failed_primary": [],
-    "drop_rate": 0.05,
+    "drop_rate": 0.1,
     "num_failed_primary": -1,
     "skip": -1,
     "server_list": {

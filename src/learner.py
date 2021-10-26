@@ -7,6 +7,7 @@ class Learner(object):
         self.server_id = server_id
         self.loss = loss
         self.client_list = client_list
+        self.server_list = server_list
         self.quorum = len(server_list) // 2 + 1
         self.sender = Sender(loss)
 
@@ -46,18 +47,7 @@ class Learner(object):
             
 
     def majority_have_accepted(self, proposal_id, slot):
-        # print("majority_have_accepted")
-        # print(self.slots, "self.slots:", self.slots[slot])
-        # count = len(self.slots[slot][proposal_id])
-        # print(count, "++++++++count:", self.quorum)
-        # if count >= self.quorum:
-        #     print("+++++++++++++True")
-        #     return True
-        # else:
-        #     print("+++++++++++++False")
-        #     return False
-        print("slot",slot)
-        print("self.slots",self.slots)
+        print("slot",slot,self.slots)
         print("proposal_id", proposal_id)
         if slot not in self.slots:
             return False
@@ -80,10 +70,6 @@ class Learner(object):
         self.decided_log[slot]["request_info"] = decided_request_info
         self.decided_log[slot]["client_id"] = decided_client_id
         self.decided_log[slot]["client_request_id"] = decided_client_request_id
-        # self.decided_log[slot] = proposal_id
-        # decided_request_info = self.proposal_list[proposal_id]["request_info"]
-        # decided_client_id = self.proposal_list[proposal_id]["client_id"]
-        print("==============",decided_request_info)
         if decided_request_info != "NOOP":
             log = "learner " + str(self.server_id) + " decided slot "+ str(slot) + " with request " + str(decided_client_request_id) + " by client " + str(decided_client_id) + ": " + decided_request_info
             self.file_logger.info(log)
@@ -92,33 +78,56 @@ class Learner(object):
                 "val": decided_request_info,
                 "client_info": decided_client_id
             }
-            # for k, v in self.client_list.items():
             self.sender.send(self.client_list[decided_client_id]["host"], self.client_list[decided_client_id]["port"], msg)
 
 
     def execute(self, skip_slot):
         print("execute")
-        print("**************",self.slot_to_execute)
-        print("**************",self.decided_log)
+        print("self.slot_to_execute:",self.slot_to_execute)
+        print("self.decided_log:",self.decided_log)
         if self.slot_to_execute == skip_slot:
             self.slot_to_execute += 1
-        while self.slot_to_execute in self.decided_log:
+        # while self.slot_to_execute in self.decided_log:
+        while self.slot_to_execute < max(self.decided_log.keys()):
             # proposal_id = self.decided_log[self.slot_to_execute]
-            self.executed_log[self.slot_to_execute] = self.decided_log[self.slot_to_execute]
-            exe = "client_id:" + str(self.executed_log[self.slot_to_execute]["client_id"]) + ", client_request_id:" + str(self.executed_log[self.slot_to_execute]["client_request_id"]) + ", request_info:" + self.executed_log[self.slot_to_execute]["request_info"] + "\n"
-            # print("learner id %s executed values: %s"%(str(self.server_id), str(self.executed_log)))
-            with open(self.execute_file, 'a') as f:
-                f.write(exe)
-            self.slot_to_execute += 1
+            if self.slot_to_execute in self.decided_log:
+                self.executed_log[self.slot_to_execute] = self.decided_log[self.slot_to_execute]
+                exe = "client_id:" + str(self.executed_log[self.slot_to_execute]["client_id"]) + ", client_request_id:" + str(self.executed_log[self.slot_to_execute]["client_request_id"]) + ", request_info:" + self.executed_log[self.slot_to_execute]["request_info"] + "\n"
+                # print("learner id %s executed values: %s"%(str(self.server_id), str(self.executed_log)))
+                with open(self.execute_file, 'a') as f:
+                    f.write(exe)
+                self.slot_to_execute += 1
+            else:
+                self.request_missed_decided_value(self.slot_to_execute)
+                return
 
+    def process_reply(self, msg):
+        if msg["value"] == None:
+            return
+        self.decided_log[msg["slot"]] = msg["value"]
 
-    # def get_proposal_pack(self):
-    #     proposal_pack = {}
-    #     for k, v in self.decided_log:
-    #         proposal_pack_tmp = {}
-    #         proposal_pack_tmp["request_info"] = self.proposal_list[v]["request_info"]
-    #         proposal_pack_tmp["client_id"] = self.proposal_list[v]["client_id"]
-    #         proposal_pack_tmp["slot"] = k
-    #     proposal_pack[v] = proposal_pack_tmp
-    #     return proposal_pack
+    def request_missed_decided_value(self, slot):
+        msg = {
+            "type": "MISS",
+            "server_id": self.server_id,
+            "slot": slot
+        }
+        server_list_list = list(self.server_list.items())
+        for i in server_list_list:
+            self.sender.send(i[1]["host"], i[1]["port"], msg)
+
+    def reply_missed_decided_value(self, msg):
+        target = msg["server_id"]
+        slot = msg["slot"]
+        decided_value = None
+        if slot in self.decided_log:
+            decided_value = self.decided_log[slot]
+        msg = {
+            "type": "REPLY",
+            "server_id": self.server_id,
+            "slot": slot,
+            "value": decided_value
+        }
+        self.sender.send(self.server_list[target]["host"], self.server_list[target]["port"], msg)
+    
         

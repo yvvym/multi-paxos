@@ -11,7 +11,6 @@ class Proposer(object):
         self.sender = Sender(self.loss)
         self.have_prepared = False
         self.proposal_id = 0
-        # self.latest_proposal_id = None
         self.count_acceptor = []    #[acceptor_id]
         self.message_promise = {}   #{proposal_id:[{"request_info":xxx, "client_id":xxx, "client_request_id": xxx, "slot":xxx, "previous_proposal_id":xxx}]}
         self.available_slot = 0
@@ -33,12 +32,10 @@ class Proposer(object):
         acceptor_id = msg["acceptor_id"]
         proposal_id = msg["proposal_id"]
         print("self.proposal_id:", self.proposal_id, "proposal_id:", proposal_id)
-        print("line36", msg)
         if self.proposal_id != proposal_id:
             return
         self.count_acceptor.append(acceptor_id)
         self.count_acceptor = list(set(self.count_acceptor))
-        print("line41", self.count_acceptor)
         for slot in msg["accepted_proposal_id"]:
             previous_proposal_id = msg["accepted_proposal_id"][slot]
             temp = {}
@@ -50,9 +47,6 @@ class Proposer(object):
             if self.proposal_id not in self.message_promise:
                 self.message_promise[self.proposal_id] = []
             self.message_promise[self.proposal_id].append(temp)
-            # self.message_promise[previous_proposal_id]["request_info"] = msg["accepted_request"][slot]["request_info"]
-            # self.message_promise[previous_proposal_id]["client_id"] = msg["acceptor_request"][slot]["client_id"]
-            # self.message_promise[previous_proposal_id]["slot"] = slot
         print("self.message_promise:", self.message_promise)
 
     def get_proposals(self):
@@ -135,48 +129,3 @@ class Proposer(object):
             self.available_slot += 1
 
             
-
-
-    # def propose(self, value):
-    #     print("propose, value", value)
-    #     max = None
-    #     for k, v in self.message_promise:
-    #         if v["slot"] == self.available_slot:
-    #             if max == None or k > max:
-    #                 max = k
-    #     if max != None:
-    #         slot = self.available_slot
-    #         self.available_slot += 1
-    #         request_info = self.message_promise[max]["request_info"]
-    #         client_id = self.message_promise[max]["client_id"]
-    #         msg = {
-    #             "type": "PROPOSE",
-    #             "proposal_id": self.proposal_id,
-    #             "server_id": self.server_id,
-    #             "slot": slot,
-    #             "request_info": request_info,
-    #             "client_id": client_id
-    #         }
-    #     else:
-    #         slot = self.available_slot
-    #         self.available_slot += 1
-    #         request_info = value["request_info"]
-    #         client_id = value["client_id"]
-    #         msg = {
-    #             "type": "PROPOSE",
-    #             "proposal_id": self.proposal_id,
-    #             "server_id": self.server_id,
-    #             "slot": slot,
-    #             "request_info": request_info,
-    #             "client_id": client_id
-    #         }
-    #         print("=====msg", msg)
-
-    #     for k, v in self.acceptor_list.items():
-    #         self.sender.send(v["host"], v["port"], msg)
-    #     if max != None:
-    #         return False    # if the argument isn't proposed, return false
-    #     else:
-    #         return True
-
-
