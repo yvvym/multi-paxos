@@ -88,7 +88,7 @@ class Learner(object):
         if self.slot_to_execute == skip_slot:
             self.slot_to_execute += 1
         # while self.slot_to_execute in self.decided_log:
-        while self.slot_to_execute < max(self.decided_log.keys()):
+        while self.slot_to_execute <= max(self.decided_log.keys()):
             # proposal_id = self.decided_log[self.slot_to_execute]
             if self.slot_to_execute in self.decided_log:
                 self.executed_log[self.slot_to_execute] = self.decided_log[self.slot_to_execute]
