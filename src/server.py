@@ -19,7 +19,7 @@ def server(server_id, config_file = '../config/testcase1.json'):
     num_server = int(config['num_server']) #number of servers
     
     clients_list = {}
-    for i in range(num_server):
+    for i in range(len(list(config['client_list'].keys()))):
         clients_list[i] = config['client_list'][str(i)]
         
     server_list = {}
@@ -207,7 +207,7 @@ def server(server_id, config_file = '../config/testcase1.json'):
                 print("======decide", msg)
                 learner.decide(msg['proposal_id'], msg['slot'], k)
                 print("======execute")
-                learner.execute()
+                learner.execute(config['skip'])
 
         elif msg['type'] == 'VIEWCHANGE':
             print("======VIEWCHANGE",msg)

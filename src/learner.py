@@ -96,10 +96,12 @@ class Learner(object):
             self.sender.send(self.client_list[decided_client_id]["host"], self.client_list[decided_client_id]["port"], msg)
 
 
-    def execute(self):
+    def execute(self, skip_slot):
         print("execute")
         print("**************",self.slot_to_execute)
         print("**************",self.decided_log)
+        if self.slot_to_execute == skip_slot:
+            self.slot_to_execute += 1
         while self.slot_to_execute in self.decided_log:
             # proposal_id = self.decided_log[self.slot_to_execute]
             self.executed_log[self.slot_to_execute] = self.decided_log[self.slot_to_execute]

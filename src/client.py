@@ -14,7 +14,8 @@ def client(client_id, config_file = '../config/testcase1.json'):
 
     num_server = int(config['num_server']) #number of servers
     clients_list = {}
-    for i in range(num_server):
+    print("len(list(config['client_list'].keys())):",len(list(config['client_list'].keys())))
+    for i in range(len(list(config['client_list'].keys()))):
         clients_list[i] = config['client_list'][str(i)]
 
     server_list = {}
@@ -40,13 +41,15 @@ def client(client_id, config_file = '../config/testcase1.json'):
         val = request_message[i]
         print("||||||||||||||||||||",val)
         while True:
-            msg = {'type': 'REQUEST', 'client_id': client_id, 'request_info': val, 'resend_id': 0, 'client_request_id': i}
+            msg = {'type': 'REQUEST', 'client_id': client_id, 'request_info': val, 'client_request_id': i}
             for server_id in server_list:
                 host = server_list[server_id]['host']
                 port = server_list[server_id]['port']
     
                 # send msg to (host, port)
-                sender_.send(host, port, msg)
+                a = sender_.send(host, port, msg)
+                if a == "losss":
+                    print("losssssssssssssssssssssssssss", msg)
             
             if wait_ack(client_host, client_port, timeout, i, s) == 'ACK':
                 break

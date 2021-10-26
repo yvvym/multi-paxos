@@ -11,7 +11,7 @@ class Sender(object):
     def send(self, host, port, msg):
         loss_flag = random.random()
         if loss_flag <= self.loss:  #message is lost
-            return
+            return "losss"
         
         delay = random.random()
         if delay != 0:  #message is delayed
