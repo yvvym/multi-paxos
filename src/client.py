@@ -90,7 +90,7 @@ def wait_ack(client_host, client_port, timeout, client_id, s):
     
 
 if __name__ == "__main__":
-    from optparse import OptionParser, OptionGroup
+    from optparse import OptionParser
 
     parser = OptionParser(usage = "Usage!")
     options, args = parser.parse_args()

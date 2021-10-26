@@ -10,3 +10,15 @@
 2021-10-25 23:00:15,409 INFO: learner 2 decided slot 9 with request 1 by client 1: orange
 2021-10-25 23:00:18,690 INFO: learner 2 decided slot 10 with request 2 by client 0: banana
 2021-10-25 23:00:28,555 INFO: learner 2 decided slot 11 with request 2 by client 1: banana
+2021-10-25 23:01:06,976 INFO: learner 2 decided slot 12 with request 2 by client 2: banana
+2021-10-25 23:01:13,436 INFO: learner 2 decided slot 13 with request 3 by client 2: pear
+2021-10-25 23:01:16,422 INFO: learner 2 decided slot 14 with request 2 by client 4: banana
+2021-10-25 23:01:24,500 INFO: learner 2 decided slot 15 with request 2 by client 3: banana
+2021-10-25 23:01:38,867 INFO: learner 2 decided slot 16 with request 3 by client 0: pear
+2021-10-25 23:01:43,485 INFO: learner 2 decided slot 17 with request 3 by client 1: pear
+2021-10-25 23:02:27,890 INFO: learner 2 decided slot 18 with request 4 by client 2: lemon
+2021-10-25 23:02:33,142 INFO: learner 2 decided slot 19 with request 3 by client 4: pear
+2021-10-25 23:02:38,973 INFO: learner 2 decided slot 20 with request 3 by client 3: pear
+2021-10-25 23:02:48,385 INFO: learner 2 decided slot 21 with request 4 by client 3: lemon
+2021-10-25 23:02:53,963 INFO: learner 2 decided slot 22 with request 4 by client 0: lemon
+2021-10-25 23:02:58,912 INFO: learner 2 decided slot 23 with request 4 by client 1: lemon

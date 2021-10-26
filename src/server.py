@@ -144,7 +144,7 @@ def server(server_id, config_file = '../config/testcase1.json'):
            
 
 if __name__ == "__main__":
-    from optparse import OptionParser, OptionGroup
+    from optparse import OptionParser
 
     parser = OptionParser(usage = "Usage!")
     options, args = parser.parse_args()
