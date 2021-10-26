@@ -28,7 +28,6 @@ def server(server_id, config_file = '../config/testcase1.json'):
     quorum = num_server // 2 + 1
 
     view = 0
-
     
     drop_rate = config['drop_rate']
     proposer = Proposer(server_id, server_list, drop_rate, config['skip'], config['num_failed_primary'])
@@ -37,7 +36,6 @@ def server(server_id, config_file = '../config/testcase1.json'):
     sender_ = Sender(drop_rate)
     
     isLeader = False
-    viwechange_log = {}
     
     HOST = server_list[server_id]['host']       
     PORT = server_list[server_id]['port']      

@@ -1,5 +1,5 @@
 {
-    "num_server": 5,
+    "num_server": 7,
     "failed_primary": [0],
     "drop_rate": 0,
     "num_failed_primary": 1,
@@ -24,6 +24,14 @@
         "4": {
             "host": "localhost",
             "port": 20004
+        },
+        "5": {
+            "host": "localhost",
+            "port": 20005
+        },
+        "6": {
+            "host": "localhost",
+            "port": 20006
         }
     },
     "client_list": {
